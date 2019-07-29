@@ -1,6 +1,9 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import mimetypes
+import logging
+
+log = logging.getLogger(__name__)
 
 def get_filepath(resource_id):
     return "/var/lib/ckan/default/resources/" + resource_id[0:3] + \
@@ -40,6 +43,9 @@ class PapayaPlugin(plugins.SingletonPlugin):
 
     def view_template(self, context, data_dict):
         return "papaya_view.html"
+
+    def form_template(self, context, data_dict):
+        return "papaya_form.html"
 
     # ITemplateHelpers
     def get_helpers(self):
