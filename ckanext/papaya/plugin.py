@@ -24,10 +24,15 @@ def encode_files(resource):
         return ""
     dir_list = os.listdir(dst)
     for i in range(len(dir_list)):
-        f = open(dst + "/" + dir_list[i], 'r')
-        contents = f.read()
-        encoded_image = base64.encodestring(contents)
-        encoded_data.append(encoded_image)
+        if dir_list[i][-4:] == ".dcm":
+            try:
+                f = open(dst + "/" + dir_list[i], 'r')
+            except:
+                continue
+            contents = f.read()
+            encoded_image = base64.encodestring(contents)
+            encoded_data.append(encoded_image)
+            f.close()
     # remove unzipped directory - we don't need it anymore
     # TODO: potential race condition here if someone else is also viewing
     # this resource?
@@ -38,6 +43,7 @@ def encode_files(resource):
 class PapayaPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IResourceView)
+    plugins.implements(plugins.IResourceController, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
 
     # IConfigurer
@@ -62,7 +68,7 @@ class PapayaPlugin(plugins.SingletonPlugin):
 
     def can_view(self, data_dict):
         resource = data_dict['resource']
-        return (resource.get('format').lower() in ['dicom', 'nifti', 'zip'])
+        return (resource.get('format').lower() in ['dicom', 'nifti', 'zip-dcm', 'zip'])
 
     def setup_template_variables(self, context, data_dict):
         return data_dict
@@ -72,6 +78,25 @@ class PapayaPlugin(plugins.SingletonPlugin):
 
     def form_template(self, context, data_dict):
         return "papaya_form.html"
+
+    # IResourceController
+
+    def after_create(self, context, resource):
+        found_dcm = False
+        if (resource["format"] == "ZIP"):
+            src = get_filepath(resource["id"])
+            with zipfile.ZipFile(src, 'r') as zip_ref:
+                for item in zip_ref.namelist():
+                    if item[-4:] == ".dcm":
+                        found_dcm = True
+                        break
+        if found_dcm:
+            toolkit.get_action('resource_view_create')(context, {
+                                    'resource_id': resource['id'],
+                                    'title': 'Papaya View',
+                                    'view_type': 'papaya'
+                                })
+        return resource
 
     # ITemplateHelpers
     def get_helpers(self):
