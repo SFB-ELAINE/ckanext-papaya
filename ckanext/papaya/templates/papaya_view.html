@@ -5,10 +5,36 @@
 
     <script type="text/javascript">
       var params = [];
-      params["images"] = [{{ resource.url|tojson }}];
+      // if ("{{ resource.format }}" == "ZIP") {
+      //   params["images"][0] = []
+      //
+      //   // var files = {#{ h.papaya_extract_files(resource)|tojson }#};
+      //   // for (i = 0; i < files.length; i++) {
+      //   //   params["images"][0].push("172.02.0.17:5000/var/lib/ckan/default/zip/" + {#{{ resource.package_id|tojson }}#} + "/" + files[i]);
+      //   // }
+      // }
       params["noNewFiles"] = true;
       params["showControlBar"] = true;
       params["showImageButtons"] = false;
+      params["expandable"] = true;
+      params["showRuler"] = false;
+      params["showOrientation"] = false;
+      params["kioskMode"] = true;
+      console.log("{{ resource.format }}")
+      if ({{ resource.format|tojson }} == "ZIP") {
+        var encoded_list = {{ h.papaya_encode_files(resource)|tojson }};
+        params["encodedImages"] = [encoded_list];
+      }
+      else {
+        params["images"] = [{{ resource.url|tojson }}];
+      }
+      // window.onbeforeunload = closing_code;
+      // function closing_code() {
+      //   console.log("LEAVING");
+      //   {#{{ h.papaya_delete_files(resource) }}#}
+      //   return null;
+      // }
+
     </script>
 </head>
 

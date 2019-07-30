@@ -2,12 +2,38 @@ import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import mimetypes
 import logging
+import zipfile
+import os
+import base64
 
 log = logging.getLogger(__name__)
 
 def get_filepath(resource_id):
     return "/var/lib/ckan/default/resources/" + resource_id[0:3] + \
             "/" + resource_id[3:6] + "/" + resource_id[6:]
+
+def encode_files(resource):
+    encoded_data = []
+    src = get_filepath(resource["id"])
+    dst = "/var/lib/ckan/default/zip/" + resource["package_id"]
+    # temporarily unzip the file
+    try:
+        with zipfile.ZipFile(src, 'r') as zip_ref:
+            zip_ref.extractall(dst)
+    except:
+        return ""
+    dir_list = os.listdir(dst)
+    for i in range(len(dir_list)):
+        f = open(dst + "/" + dir_list[i], 'r')
+        contents = f.read()
+        encoded_image = base64.encodestring(contents)
+        encoded_data.append(encoded_image)
+    # remove unzipped directory - we don't need it anymore
+    # TODO: potential race condition here if someone else is also viewing
+    # this resource?
+    # could we keep each user's stuff completely separate to avoid that?
+    os.system(" ".join(("rm -r", dst)))
+    return encoded_data
 
 class PapayaPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
@@ -36,7 +62,7 @@ class PapayaPlugin(plugins.SingletonPlugin):
 
     def can_view(self, data_dict):
         resource = data_dict['resource']
-        return (resource.get('format').lower() in ['dicom', 'nifti'])
+        return (resource.get('format').lower() in ['dicom', 'nifti', 'zip'])
 
     def setup_template_variables(self, context, data_dict):
         return data_dict
@@ -49,4 +75,5 @@ class PapayaPlugin(plugins.SingletonPlugin):
 
     # ITemplateHelpers
     def get_helpers(self):
-        return {'papaya_get_filepath': get_filepath}
+        return {'papaya_get_filepath': get_filepath,
+                'papaya_encode_files': encode_files}
