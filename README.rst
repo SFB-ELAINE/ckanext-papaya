@@ -1,53 +1,21 @@
-.. You should enable this project on travis-ci.org and coveralls.io to make
-   these badges work. The necessary Travis and Coverage config files have been
-   generated for you.
-
-.. image:: https://travis-ci.org//ckanext-papaya.svg?branch=master
-    :target: https://travis-ci.org//ckanext-papaya
-
-.. image:: https://coveralls.io/repos//ckanext-papaya/badge.svg
-  :target: https://coveralls.io/r//ckanext-papaya
-
-.. image:: https://img.shields.io/pypi/v/ckanext-papaya.svg
-    :target: https://pypi.org/project/ckanext-papaya/
-    :alt: Latest Version
-
-.. image:: https://img.shields.io/pypi/pyversions/ckanext-papaya.svg
-    :target: https://pypi.org/project/ckanext-papaya/
-    :alt: Supported Python versions
-
-.. image:: https://img.shields.io/pypi/status/ckanext-papaya.svg
-    :target: https://pypi.org/project/ckanext-papaya/
-    :alt: Development Status
-
-.. image:: https://img.shields.io/pypi/l/ckanext-papaya.svg
-    :target: https://pypi.org/project/ckanext-papaya/
-    :alt: License
-
-=============
+===============
 ckanext-papaya
-=============
+===============
 
-.. Put a description of your extension here:
-   What does it do? What features does it have?
-   Consider including some screenshots or embedding a video!
-
+This is an extension for CKAN that uses Papaya
+(https://github.com/rii-mango/Papaya) to provide views for NIFTI (.nii) and
+DICOM (.dcm) file formats. It provides views for both single DICOM files as well
+as DICOM directories uploaded to CKAN as a ZIP file.
 
 ------------
 Requirements
 ------------
 
-For example, you might want to mention here which versions of CKAN this
-extension works with.
-
+Tested with CKAN 2.9.0a.
 
 ------------
 Installation
 ------------
-
-.. Add any additional install steps to the list below.
-   For example installing any non-Python dependencies or adding any required
-   config settings.
 
 To install ckanext-papaya:
 
@@ -61,7 +29,9 @@ To install ckanext-papaya:
 
 3. Add ``papaya`` to the ``ckan.plugins`` setting in your CKAN
    config file (by default the config file is located at
-   ``/etc/ckan/default/production.ini``).
+   ``/etc/ckan/default/production.ini``). To avoid having the Papaya viewer
+   enabled for all ZIP files, regardless of whether they contain DICOM files,
+   do not add ``papaya`` to ``ckan.views.default_views``.
 
 4. Restart CKAN. For example if you've deployed CKAN with Apache on Ubuntu::
 
@@ -72,14 +42,9 @@ To install ckanext-papaya:
 Config settings
 ---------------
 
-None at present
-
-.. Document any optional config settings here. For example::
-
-.. # The minimum number of hours to wait before re-checking a resource
-   # (optional, default: 24).
-   ckanext.papaya.some_setting = some_default_value
-
+None at present. NIFTI files and DICOM directories tend to be rather large,
+so you may have to increase the maximum resource size to allow users to upload
+these file formats.
 
 ----------------------
 Developer installation
@@ -107,39 +72,32 @@ coverage installed in your virtualenv (``pip install coverage``) then run::
 
     nosetests --nologcapture --with-pylons=test.ini --with-coverage --cover-package=ckanext.papaya --cover-inclusive --cover-erase --cover-tests
 
+--------------------
+Using the Extension
+--------------------
 
-----------------------------------------
-Releasing a new version of ckanext-papaya
-----------------------------------------
+The extension automatically creates a view using the Papaya Viewer for single
+DICOM files (with file extension .dcm), NIFTI files (with file extension .nii),
+and ZIP archives that contain one or more DICOM files. If a ZIP archive contains
+other file types besides DICOM files, or DICOM files without the .dcm extension,
+they will simply be ignored when displaying correctly-formatted files in
+Papaya.
 
-ckanext-papaya should be available on PyPI as https://pypi.org/project/ckanext-papaya.
-To publish a new version to PyPI follow these steps:
+To view zipped DICOM files, the extension temporarily unzips the archive and
+passes the contents of the files with .dcm extensions to Papaya. The unzipped
+files are deleted immediately to prevent them from taking up space on the server.
+Papaya can't actually read local files, since it's a JavaScript framework, so
+it is necessary to pass the raw contents of the files rather than the paths to the
+files themselves on to Papaya. Users may experience some lag when trying to view
+large DICOM directories, but most of this lag comes from Papaya reading the
+individual DICOM files rather than from the CKAN extension passing the data to
+Papaya.
 
-1. Update the version number in the ``setup.py`` file.
-   See `PEP 440 <http://legacy.python.org/dev/peps/pep-0440/#public-version-identifiers>`_
-   for how to choose version numbers.
+Unlike our ParaView extension (https://github.com/SFB-ELAINE/ckanext-paraview),
+this extension runs directly in CKAN and does not require a separate server.
+Once it is installed in a CKAN instance and added to the config file, it will
+work without further setup.
 
-2. Make sure you have the latest version of necessary packages::
-
-    pip install --upgrade setuptools wheel twine
-
-3. Create a source and binary distributions of the new version::
-
-       python setup.py sdist bdist_wheel && twine check dist/*
-
-   Fix any errors you get.
-
-4. Upload the source distribution to PyPI::
-
-       twine upload dist/*
-
-5. Commit any outstanding changes::
-
-       git commit -a
-
-6. Tag the new release of the project on GitHub with the version number from
-   the ``setup.py`` file. For example if the version number in ``setup.py`` is
-   0.0.1 then do::
-
-       git tag 0.0.1
-       git push --tags
+This extension will automatically create Papaya views for newly-uploaded files,
+but existing resources with NIFTI files, single DICOM files, or DICOM directories
+may need to have the Papaya view added manually.

@@ -9,10 +9,23 @@ import base64
 log = logging.getLogger(__name__)
 
 def get_filepath(resource_id):
+    '''
+    Returns the path to the location of the file associated with
+    the resource with the given resource ID.
+    '''
     return "/var/lib/ckan/default/resources/" + resource_id[0:3] + \
             "/" + resource_id[3:6] + "/" + resource_id[6:]
 
 def encode_files(resource, username):
+    '''
+    This function is used when viewing a ZIP file to extract the files
+    in the archive and pass their contents to the Papaya viewer. It
+    extracts them all to a temporary directory structure, reads each file
+    and encodes its contents in base64 (which Papaya can display), and appends
+    those contents to a list that is returned to Papaya and used directly to
+    display the DICOM directory. The function skips files that are not
+    DICOM (i.e., they do not have a .dcm extension).
+    '''
     encoded_data = []
     src = get_filepath(resource["id"])
     dst = "/var/lib/ckan/default/zip/" + username + "/" + resource["package_id"]
@@ -20,8 +33,8 @@ def encode_files(resource, username):
     try:
         with zipfile.ZipFile(src, 'r') as zip_ref:
             zip_ref.extractall(dst)
+    # return an empty string if this was called on a non-ZIP file
     except:
-        # TODO: error message
         return ""
     dir_list = os.listdir(dst)
     for i in range(len(dir_list)):
@@ -42,9 +55,6 @@ class PapayaPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IResourceView)
     plugins.implements(plugins.IResourceController, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
-
-    # def __init__(self):
-    #     self.zip_lock = threading.Lock()
 
     # IConfigurer
 
@@ -68,7 +78,7 @@ class PapayaPlugin(plugins.SingletonPlugin):
 
     def can_view(self, data_dict):
         resource = data_dict['resource']
-        return (resource.get('format').lower() in ['dicom', 'nifti', 'zip-dcm', 'zip'])
+        return (resource.get('format').lower() in ['dicom', 'nifti', 'zip'])
 
     def setup_template_variables(self, context, data_dict):
         return data_dict
@@ -82,6 +92,14 @@ class PapayaPlugin(plugins.SingletonPlugin):
     # IResourceController
 
     def after_create(self, context, resource):
+        '''
+        Used to determine whether a file should have Papaya as a default view.
+        NIFTI and single DICOM files will always be viewable with Papaya, but
+        only some ZIP files have DICOM files; those that don't should not have
+        Papaya as a default view. This function checks the filenames inside
+        an uploaded ZIP archive and adds Papaya as a view for the resource if
+        the archive contains any files with .dcm extensions.
+        '''
         found_dcm = False
         if (resource["format"] == "ZIP"):
             src = get_filepath(resource["id"])
@@ -90,7 +108,7 @@ class PapayaPlugin(plugins.SingletonPlugin):
                     if item[-4:] == ".dcm":
                         found_dcm = True
                         break
-        if found_dcm:
+        if found_dcm or resource["format"] == "DICOM" or resource["format"] == "NIFTI":
             toolkit.get_action('resource_view_create')(context, {
                                     'resource_id': resource['id'],
                                     'title': 'Papaya View',

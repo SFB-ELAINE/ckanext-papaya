@@ -1,3 +1,30 @@
+/*
+Copyright (c) 2012-2015, RII-UTHSCSA
+All rights reserved.
+
+THIS PRODUCT IS NOT FOR CLINICAL USE.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+following conditions are met:
+
+- Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the distribution.
+
+- Neither the name of the RII-UTHSCSA nor the names of its contributors may be used to endorse or promote products
+ derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 var PAPAYA_BUILD_NUM="1449",papayaLoadableImages=[];
 (function(a,b){function e(a){var b=a.length,d=N.type(a);return N.isWindow(a)?!1:1===a.nodeType&&b?!0:"array"===d||"function"!==d&&(0===b||"number"===typeof b&&0<b&&b-1 in a)}function d(a){var b=Jc[a]={};N.each(a.match(bc)||[],function(a,d){b[d]=!0});return b}function f(a,d,f,h){if(N.acceptData(a)){var e=N.expando,k="string"===typeof d,m=a.nodeType,n=m?N.cache:a,q=m?a[e]:a[e]&&e;if(q&&n[q]&&(h||n[q].data)||!k||f!==b){q||(m?a[e]=q=cc.pop()||N.guid++:q=e);n[q]||(n[q]={},m||(n[q].toJSON=N.noop));if("object"===
 typeof d||"function"===typeof d)h?n[q]=N.extend(n[q],d):n[q].data=N.extend(n[q].data,d);a=n[q];h||(a.data||(a.data={}),a=a.data);f!==b&&(a[N.camelCase(d)]=f);k?(f=a[d],null==f&&(f=a[N.camelCase(d)])):f=a;return f}}}function k(a,b,d){if(N.acceptData(a)){var f,h,e,k=a.nodeType,m=k?N.cache:a,n=k?a[N.expando]:N.expando;if(m[n]){if(b&&(e=d?m[n]:m[n].data)){N.isArray(b)?b=b.concat(N.map(b,N.camelCase)):b in e?b=[b]:(b=N.camelCase(b),b=b in e?[b]:b.split(" "));f=0;for(h=b.length;f<h;f++)delete e[b[f]];if(!(d?
