@@ -12,31 +12,28 @@ def get_filepath(resource_id):
     return "/var/lib/ckan/default/resources/" + resource_id[0:3] + \
             "/" + resource_id[3:6] + "/" + resource_id[6:]
 
-def encode_files(resource):
+def encode_files(resource, username):
     encoded_data = []
     src = get_filepath(resource["id"])
-    dst = "/var/lib/ckan/default/zip/" + resource["package_id"]
+    dst = "/var/lib/ckan/default/zip/" + username + "/" + resource["package_id"]
     # temporarily unzip the file
     try:
         with zipfile.ZipFile(src, 'r') as zip_ref:
             zip_ref.extractall(dst)
     except:
+        # TODO: error message
         return ""
     dir_list = os.listdir(dst)
     for i in range(len(dir_list)):
         if dir_list[i][-4:] == ".dcm":
             try:
-                f = open(dst + "/" + dir_list[i], 'r')
+                with open(dst + "/" + dir_list[i], 'r') as f:
+                    contents = f.read()
+                    encoded_image = base64.encodestring(contents)
+                    encoded_data.append(encoded_image)
             except:
                 continue
-            contents = f.read()
-            encoded_image = base64.encodestring(contents)
-            encoded_data.append(encoded_image)
-            f.close()
-    # remove unzipped directory - we don't need it anymore
-    # TODO: potential race condition here if someone else is also viewing
-    # this resource?
-    # could we keep each user's stuff completely separate to avoid that?
+    # remove unzipped directory
     os.system(" ".join(("rm -r", dst)))
     return encoded_data
 
@@ -45,6 +42,9 @@ class PapayaPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IResourceView)
     plugins.implements(plugins.IResourceController, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
+
+    # def __init__(self):
+    #     self.zip_lock = threading.Lock()
 
     # IConfigurer
 
