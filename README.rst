@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/SFB-ELAINE/ckanext-papaya.svg?branch=master
+    :target: https://travis-ci.org/SFB-ELAINE/ckanext-papaya
+
 ===============
 ckanext-papaya
 ===============
