@@ -34,7 +34,7 @@ To install ckanext-papaya:
    config file (by default the config file is located at
    ``/etc/ckan/default/production.ini``). To avoid having the Papaya viewer
    enabled for all ZIP files, regardless of whether they contain DICOM files,
-   do not add ``papaya`` to ``ckan.views.default_views``.
+   do **not** add ``papaya`` to ``ckan.views.default_views``.
 
 4. Restart CKAN. For example if you've deployed CKAN with Apache on Ubuntu::
 

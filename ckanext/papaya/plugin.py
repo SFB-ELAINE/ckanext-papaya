@@ -8,13 +8,15 @@ import base64
 
 log = logging.getLogger(__name__)
 
+
 def get_filepath(resource_id):
     '''
     Returns the path to the location of the file associated with
     the resource with the given resource ID.
     '''
     return "/var/lib/ckan/default/resources/" + resource_id[0:3] + \
-            "/" + resource_id[3:6] + "/" + resource_id[6:]
+        "/" + resource_id[3:6] + "/" + resource_id[6:]
+
 
 def encode_files(resource, username):
     '''
@@ -34,7 +36,7 @@ def encode_files(resource, username):
         with zipfile.ZipFile(src, 'r') as zip_ref:
             zip_ref.extractall(dst)
     # return an empty string if this was called on a non-ZIP file
-    except:
+    except zipfile.BadZipfile:
         return ""
     dir_list = os.listdir(dst)
     for i in range(len(dir_list)):
@@ -44,11 +46,12 @@ def encode_files(resource, username):
                     contents = f.read()
                     encoded_image = base64.encodestring(contents)
                     encoded_data.append(encoded_image)
-            except:
+            except IOError:
                 continue
     # remove unzipped directory
     os.system(" ".join(("rm -r", dst)))
     return encoded_data
+
 
 class PapayaPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
@@ -69,12 +72,12 @@ class PapayaPlugin(plugins.SingletonPlugin):
     # IResourceView
 
     def info(self):
-        return { 'name': 'papaya',
-            'title': toolkit._('Papaya Viewer'),
-            'icon': 'cube',
-            'default_title' :toolkit._('Papaya Viewer'),
-            'iframed': False
-        }
+        return {'name': 'papaya',
+                'title': toolkit._('Papaya Viewer'),
+                'icon': 'cube',
+                'default_title': toolkit._('Papaya Viewer'),
+                'iframed': False
+                }
 
     def can_view(self, data_dict):
         resource = data_dict['resource']
