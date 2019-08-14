@@ -14,8 +14,15 @@ def get_filepath(resource_id):
     Returns the path to the location of the file associated with
     the resource with the given resource ID.
     '''
-    return "/var/lib/ckan/default/resources/" + resource_id[0:3] + \
-        "/" + resource_id[3:6] + "/" + resource_id[6:]
+    filepath = ""
+    # determine the absolute path to the resources directory
+    for root, dirs, files in os.walk("/var/lib/ckan", topdown=True):
+        for name in dirs:
+            if name == "resources":
+                filepath = os.path.join(root, name)
+
+    return filepath, filepath + "/" + resource_id[0:3] + "/" + \
+        resource_id[3:6] + "/" + resource_id[6:]
 
 
 def encode_files(resource, username):
@@ -29,8 +36,9 @@ def encode_files(resource, username):
     DICOM (i.e., they do not have a .dcm extension).
     '''
     encoded_data = []
-    src = get_filepath(resource["id"])
-    dst = "/var/lib/ckan/default/zip/" + username + "/" + resource["package_id"]
+    path, src = get_filepath(resource["id"])
+    dst = path + "/zip/" + username + "/" + resource["package_id"]
+
     # temporarily unzip the file
     try:
         with zipfile.ZipFile(src, 'r') as zip_ref:
@@ -105,7 +113,7 @@ class PapayaPlugin(plugins.SingletonPlugin):
         '''
         found_dcm = False
         if (resource["format"] == "ZIP"):
-            src = get_filepath(resource["id"])
+            path, src = get_filepath(resource["id"])
             with zipfile.ZipFile(src, 'r') as zip_ref:
                 for item in zip_ref.namelist():
                     if item[-4:] == ".dcm":
